@@ -1,0 +1,25 @@
+{{/* Server that have a 2fa for moderation requirement require all moderators to have 2fa enabled to delete messages. 
+ So, for the ones that don't have or want to turn on 2FA, this cc's for you.
+ 
+ Deletes a message when reacted with a specific emoji ❌
+ Set role restrictions to moderator roles ONLY
+ Trigger type: Reaction Add Only
+ Author: Ipsit#1173 */}}
+ 
+{{$logging_channel := 733633424379609088 }} {{/* Replace 733633424379609088 with the ID of the channel you want the deleted message to be logged in */}}
+{{$ana := .Message.Content }}
+{{$salem := .Message.Author.String }}
+{{$mid := .Message.ID}}
+{{$ipsit := 16777215}}{{$p := 0}}{{$r := .Member.Roles}}{{range .Guild.Roles}}{{if and (in $r .ID) (.Color) (lt $p .Position)}}{{$p = .Position}}{{$ipsit = .Color}}{{end}}{{end}}
+ 
+{{if (eq .Reaction.Emoji.Name "❌") }}  {{/* You can replace ❌ with any emoji, when replacing with custom emojis, only add the name of the emoji without the id, 
+for example if I were to use the custom emoji <:delete:866086634167205949>, I'd replace ❌ with delete */}}
+{{sendMessage $logging_channel (cembed
+"description" (print "Message deleted in <#" .Channel.ID "> by:** "  .User "** [" .User.ID "]" "\n\n**Content: **" $ana)
+"thumbnail" (sdict "url" " https://cdn.discordapp.com/attachments/859104013361610752/866089966408040468/image0.png ")
+"author" (sdict "name" $salem "icon_url" ($.Message.Author.AvatarURL "256"))
+ "color" $ipsit
+ "timestamp"  currentTime
+"footer" (sdict "icon_url" ($.User.AvatarURL "256") "text" (print $mid )))}}
+    {{ deleteMessage nil $mid 0}}
+{{end}}
